@@ -8,6 +8,7 @@
     <link rel="icon" href="media/favicon-32x32.png" type="image/png">
     <link rel="stylesheet" href="style.css">
     <script src="form.js" defer></script>
+    <script src="theme.js" defer></script>
 </head>
 
 <body>
@@ -24,6 +25,7 @@
                 <li><a href="form-with-js.html" aria-current="page">Form JS</a></li>
             </ul>
         </nav>
+        <button type="button" id="theme-toggle" hidden>Switch to dark</button>
         <h1>Form JS</h1>
     </header>
     <main>
@@ -52,7 +54,7 @@
                     <textarea id="comments" name="comments" placeholder="Type comments to be sent" required
                         minlength="10" maxlength="1000" aria-describedby="comments-hint comments-info"></textarea>
                     <small id="comments-hint">10 to 1,000 characters.</small>
-                    <p id="comments-info" hidden></p>
+                    <small id="comments-info" hidden></small>
                 </div>
 
                 <div id="error-area" role="status" aria-label="Form errors"></div>

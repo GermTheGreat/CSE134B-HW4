@@ -6,10 +6,10 @@ const submitButton = document.querySelector('button[type="submit"]');
 const commentsInfo = document.querySelector('#comments-info');
 const fields = [nameInput, emailInput, commentsInput];
 const errorArea = document.querySelector('#error-area');
-
 const commentsLength = commentsInput.maxLength;
-const commentsMinLength = commentsInput.minLength;
 const warningThreshold = 50;
+const edited = new Set();
+const form_errors = [];
 
 function updateCommentInfo() {
     const remaining = commentsLength - commentsInput.value.length;
@@ -42,7 +42,7 @@ function checkField(input) {
     } else if (input.validity.typeMismatch) {
         message = "Please enter a valid email address.";
     } else if (input.validity.tooShort) {
-        message = `Your comment is too short. Minimum ${input.minLength} characters required, please add more.`;
+        message = `Your input is too short. Minimum ${input.minLength} characters required, please add more.`;
     }
 
     if (message) input.setCustomValidity(message);
@@ -55,7 +55,7 @@ for (const field of fields) {
     });
     field.addEventListener('input', () => {
         edited.add(field);
-        if (document.getElementById(`${field.id}-error`)) validateField(field);
+        if (document.getElementById(`error-${field.id}`)) validateField(field);
         else checkField(field);
     });
 }
@@ -71,18 +71,54 @@ function showError(input, message) {
         item.id = id;
         item.className = 'error-item';
         errorArea.append(item);
+        addHelper(input);
     }
+    input.setAttribute('aria-invalid', 'true');
     item.textContent = `${fieldLabels[input.id]}: ${message}`;
 }
+
 function clearError(input) {
     const id = `error-${input.id}`;
     let item = document.querySelector(`#${id}`);
+    if (item){
+        item.remove();
+        clearHelper(input);
+        input.removeAttribute('aria-invalid');
+    }
+}
 
-    if (item) item.remove();
-};
-
-function validateAndDisplay(field) {
-    const message = checkField(field);
-    message ? showError(field, message) : clearError(field);
+function validateField(input) {
+    const message = checkField(input);
+    if (message) showError(input, message);
+    else clearError(input);
     return message;
 }
+
+function addHelper(input){
+    const descriptionText = (input.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean);
+    if(!descriptionText.includes(`error-${input.id}`)) {
+        descriptionText.push(`error-${input.id}`);
+    }
+    input.setAttribute('aria-describedby', descriptionText.join(' '));
+}
+
+function clearHelper(input){
+    const ids = (input.getAttribute('aria-describedby') || '').split(/\s+/).filter(id => id && id !== `error-${input.id}`);
+    input.setAttribute('aria-describedby', ids.join(' '));
+}
+
+submitButton.addEventListener('click', () => {
+    const errors = [];
+    for (const field of fields) {
+        const message = validateField(field);
+        if (message) {
+            const errorMessage = { field: field.name, message: message };
+            errors.push(errorMessage);
+        }
+    }
+    form_errors.push(...errors);
+});
+
+form.addEventListener('submit', () => {
+    form.querySelector('input[name="form-errors"]').value = JSON.stringify(form_errors);
+});
